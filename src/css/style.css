@@ -1,0 +1,65 @@
+.task-widget {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background-color: #d8bbbb;
+  padding: 5px;
+}
+.task-widget__column {
+  border-radius: 3px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(85, 79, 79);
+  width: 31%;
+  min-height: 200px;
+  padding-bottom: 55px;
+}
+.task-widget__item {
+  position: relative;
+  border-radius: 3px;
+  box-sizing: border-box;
+  background-color: #fff;
+  width: 98%;
+  align-self: center;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 5px;
+}
+
+
+.task-widget__item--dragged {
+  position: absolute;
+}
+
+.task-widget__item--close {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0; right: 0;
+  display: block;
+}
+
+
+.task-widget__button {
+  border-radius: 3px;
+  background-color: rgb(197, 143, 41);
+  padding: 5px 10px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.add-card__form {
+  position: absolute;
+  border-radius: 3px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+}
+
+.add-card__input {
+  width: 98%;
+  min-height: 30px;
+  resize: none;
+}
