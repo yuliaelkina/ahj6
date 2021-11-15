@@ -10,10 +10,20 @@ export default class TaskWidget {
     }
     this._element = element;
     this.buttons = [...document.querySelectorAll('.task-widget__button')];
-    this.items = [...this._element.querySelectorAll('.task-widget__item')];
+    this._items;
+    this.columns = [...this._element.querySelectorAll('.task-widget__column')];
   }
 
   init() {
+    if (localStorage.getItem('taskWidgetMemory')) {
+      const memory = JSON.parse(localStorage.getItem('taskWidgetMemory'));
+      for (let i = 0; i < this.columns.length; i++) {
+        memory[`column${i}`].forEach((el) => {
+          TaskWidget.newTask(el, this.columns[i]);
+        })
+      }
+      this.items = [...document.querySelectorAll('.task-widget__item')];
+    }
     this.buttons.forEach((el) => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
@@ -32,6 +42,8 @@ export default class TaskWidget {
       let draggedEl;
       let draggedElWidth;
       let draggedElHeight;
+      let closest;
+      let topCoord;
       el.addEventListener('mousedown', (evt) => {
         evt.preventDefault();
         if (!evt.target.classList.contains('task-widget__item')) {
@@ -54,16 +66,56 @@ export default class TaskWidget {
         if (!draggedEl) {
           return;
         }
+        this.items.forEach((el) => {
+          el.style.marginBottom = '2px';
+          el.style.marginTop = '2px';
+        });
         draggedEl.style.left = `${evt.pageX - draggedEl.offsetWidth / 2}px`;
         draggedEl.style.top = `${evt.pageY - draggedEl.offsetHeight / 2}px`;
-        const closest = document.elementFromPoint(evt.clientX, evt.clientY);
-        const { top } = closest.getBoundingClientRect();
-        if (evt.pageY > window.scrollY + top + closest.offsetHeight / 2) {
-          // closest.style.paddingBottom = `${draggedElWidth}px`;
+        closest = document.elementsFromPoint(evt.clientX, evt.clientY).find((el) => el.className === 'task-widget__item');
+        if (!closest) {
+          return;
+        }
+        topCoord = closest.getBoundingClientRect();
+        if (evt.pageY > window.scrollY + topCoord + closest.offsetHeight / 2) {
+          closest.style.marginBottom = `${draggedElHeight + 2}px`;
         } else {
-          // closest.style.paddingTop = `${draggedElWidth}px`;
+          closest.style.marginTop = `${draggedElHeight + 2}px`;
         }
       });
+      el.addEventListener('mouseup', (evt) => {
+        evt.preventDefault();
+        if (!draggedEl) {
+          return;
+        }
+        draggedEl.classList.remove('task-widget__item--dragged');
+        draggedEl.style.width = '98%';
+        draggedEl.style.height = 'auto';
+        draggedEl.style.top = 'auto';
+        draggedEl.style.left = 'auto';
+        document.body.removeChild(draggedEl);
+        if (!closest) {
+          const parent = document.elementsFromPoint(evt.clientX, evt.clientY).find((el) => el.className === 'task-widget__column');
+          parent.appendChild(draggedEl);
+        } else {
+          if (evt.pageY > window.scrollY + topCoord + closest.offsetHeight / 2) {
+            closest.parentNode.insertBefore(draggedEl, closest.nextElementSibling);
+          } else {
+            closest.parentNode.insertBefore(draggedEl, closest);
+          }
+        }
+        this.items.forEach((el) => {
+          el.style.marginBottom = '2px';
+          el.style.marginTop = '2px';
+        });
+        
+        draggedEl = null;
+        closest = null;
+        topCoord = null;
+      })
+    });
+    window.addEventListener('unload', () => {
+      localStorage.setItem('taskWidgetMemory', `${this.saveTasks()}`);
     });
   }
 
@@ -84,7 +136,7 @@ export default class TaskWidget {
       addCardForm.closest('.task-widget__column').removeChild(addCardForm);
     });
   }
-
+  
   static newTask(text, column) {
     const card = document.createElement('div');
     card.classList.add('task-widget__item');
@@ -100,5 +152,18 @@ export default class TaskWidget {
     cross.addEventListener('click', () => {
       el.closest('.task-widget__column').removeChild(el);
     });
+  }
+
+  saveTasks() {
+    const savedTasks = {};
+    for(let i = 0; i < this.columns.length; i++) {
+      const column = [];
+      this.columns[i].querySelectorAll('.task-widget__item').forEach((el) => {
+        const task = el.innerText;
+        column.push(task);
+      });
+      savedTasks[`column${i}`] = column;
+    }
+    return JSON.stringify(savedTasks);
   }
 }
