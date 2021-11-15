@@ -32,87 +32,7 @@ export default class TaskWidget {
       });
     });
     this.items.forEach((el) => {
-      el.addEventListener('mouseenter', () => {
-        document.body.style.cursor = 'pointer';
-        TaskWidget.addDeleteButton(el);
-      });
-      el.addEventListener('mouseleave', () => {
-        el.removeChild(el.querySelector('.task-widget__item--close'));
-        document.body.style.cursor = 'default';
-      });
-      let draggedEl;
-      let draggedElWidth;
-      let draggedElHeight;
-      let closest;
-      let topCoord;
-      el.addEventListener('mousedown', (evt) => {
-        evt.preventDefault();
-        if (!evt.target.classList.contains('task-widget__item')) {
-          return;
-        }
-        draggedEl = evt.target;
-        draggedElWidth = draggedEl.offsetWidth;
-        draggedElHeight = draggedEl.offsetHeight;
-        draggedEl.closest('.task-widget__column').removeChild(draggedEl);
-        document.body.style.cursor = 'grabbing';
-        draggedEl.classList.add('task-widget__item--dragged');
-        draggedEl.style.width = `${draggedElWidth}px`;
-        draggedEl.style.height = `${draggedElHeight}px`;
-        document.body.appendChild(draggedEl);
-        draggedEl.style.left = `${evt.pageX - draggedEl.offsetWidth / 2}px`;
-        draggedEl.style.top = `${evt.pageY - draggedEl.offsetHeight / 2}px`;
-      });
-      el.addEventListener('mousemove', (evt) => {
-        evt.preventDefault();
-        if (!draggedEl) {
-          return;
-        }
-        this.items.forEach((item) => {
-          item.style.marginBottom = '2px';
-          item.style.marginTop = '2px';
-        });
-        draggedEl.style.left = `${evt.pageX - draggedEl.offsetWidth / 2}px`;
-        draggedEl.style.top = `${evt.pageY - draggedEl.offsetHeight / 2}px`;
-        closest = document.elementsFromPoint(evt.clientX, evt.clientY).find((item) => item.className === 'task-widget__item');
-        if (!closest) {
-          return;
-        }
-        topCoord = closest.getBoundingClientRect();
-        if (evt.pageY > window.scrollY + topCoord + closest.offsetHeight / 2) {
-          closest.style.marginBottom = `${draggedElHeight + 2}px`;
-        } else {
-          closest.style.marginTop = `${draggedElHeight + 2}px`;
-        }
-      });
-      el.addEventListener('mouseup', (evt) => {
-        evt.preventDefault();
-        if (!draggedEl) {
-          return;
-        }
-        draggedEl.classList.remove('task-widget__item--dragged');
-        draggedEl.style.width = '98%';
-        draggedEl.style.height = 'auto';
-        draggedEl.style.top = 'auto';
-        draggedEl.style.left = 'auto';
-        document.body.removeChild(draggedEl);
-        if (!closest) {
-          const parent = document.elementsFromPoint(evt.clientX, evt.clientY).find((item) => item.className === 'task-widget__column');
-          parent.appendChild(draggedEl);
-        } else {
-          if (evt.pageY > window.scrollY + topCoord + closest.offsetHeight / 2) {
-            closest.parentNode.insertBefore(draggedEl, closest.nextElementSibling);
-          } else {
-            closest.parentNode.insertBefore(draggedEl, closest);
-          }
-        }
-        this.items.forEach((item) => {
-          item.style.marginBottom = '2px';
-          item.style.marginTop = '2px';
-        });
-        draggedEl = null;
-        closest = null;
-        topCoord = null;
-      });
+      this.addEventListenersForCard(el);
     });
     window.addEventListener('unload', () => {
       localStorage.setItem('taskWidgetMemory', `${this.saveTasks()}`);
@@ -137,11 +57,96 @@ export default class TaskWidget {
     });
   }
 
+  addEventListenersForCard(el) {
+    el.addEventListener('mouseenter', () => {
+      document.body.style.cursor = 'pointer';
+      TaskWidget.addDeleteButton(el);
+    });
+    el.addEventListener('mouseleave', () => {
+      el.removeChild(el.querySelector('.task-widget__item--close'));
+      document.body.style.cursor = 'default';
+    });
+    let draggedEl;
+    let draggedElWidth;
+    let draggedElHeight;
+    let closest;
+    let topCoord;
+    el.addEventListener('mousedown', (evt) => {
+      evt.preventDefault();
+      if (!evt.target.classList.contains('task-widget__item')) {
+        return;
+      }
+      draggedEl = evt.target;
+      draggedElWidth = draggedEl.offsetWidth;
+      draggedElHeight = draggedEl.offsetHeight;
+      draggedEl.closest('.task-widget__column').removeChild(draggedEl);
+      document.body.style.cursor = 'grabbing';
+      draggedEl.classList.add('task-widget__item--dragged');
+      draggedEl.style.width = `${draggedElWidth}px`;
+      draggedEl.style.height = `${draggedElHeight}px`;
+      document.body.appendChild(draggedEl);
+      draggedEl.style.left = `${evt.pageX - draggedEl.offsetWidth / 2}px`;
+      draggedEl.style.top = `${evt.pageY - draggedEl.offsetHeight / 2}px`;
+    });
+    el.addEventListener('mousemove', (evt) => {
+      evt.preventDefault();
+      if (!draggedEl) {
+        return;
+      }
+      this.items.forEach((item) => {
+        item.style.marginBottom = '2px';
+        item.style.marginTop = '2px';
+      });
+      draggedEl.style.left = `${evt.pageX - draggedEl.offsetWidth / 2}px`;
+      draggedEl.style.top = `${evt.pageY - draggedEl.offsetHeight / 2}px`;
+      closest = document.elementsFromPoint(evt.clientX, evt.clientY).find((item) => item.className === 'task-widget__item');
+      if (!closest) {
+        return;
+      }
+      topCoord = closest.getBoundingClientRect();
+      if (evt.pageY > window.scrollY + topCoord + closest.offsetHeight / 2) {
+        closest.style.marginBottom = `${draggedElHeight + 2}px`;
+      } else {
+        closest.style.marginTop = `${draggedElHeight + 2}px`;
+      }
+    });
+    el.addEventListener('mouseup', (evt) => {
+      evt.preventDefault();
+      if (!draggedEl) {
+        return;
+      }
+      draggedEl.classList.remove('task-widget__item--dragged');
+      draggedEl.style.width = '98%';
+      draggedEl.style.height = 'auto';
+      draggedEl.style.top = 'auto';
+      draggedEl.style.left = 'auto';
+      document.body.removeChild(draggedEl);
+      if (!closest) {
+        const parent = document.elementsFromPoint(evt.clientX, evt.clientY).find((item) => item.className === 'task-widget__column');
+        parent.appendChild(draggedEl);
+      } else {
+        if (evt.pageY > window.scrollY + topCoord + closest.offsetHeight / 2) {
+          closest.parentNode.insertBefore(draggedEl, closest.nextElementSibling);
+        } else {
+          closest.parentNode.insertBefore(draggedEl, closest);
+        }
+      }
+      this.items.forEach((item) => {
+        item.style.marginBottom = '2px';
+        item.style.marginTop = '2px';
+      });
+      draggedEl = null;
+      closest = null;
+      topCoord = null;
+    });
+  }
+
   static newTask(text, column) {
     const card = document.createElement('div');
     card.classList.add('task-widget__item');
     card.innerText = `${text}`;
     column.appendChild(card);
+    this.addEventListenersForCard(card);
   }
 
   static addDeleteButton(el) {
