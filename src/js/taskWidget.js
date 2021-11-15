@@ -13,6 +13,7 @@ export default class TaskWidget {
     this._element = element;
     this.buttons = [...document.querySelectorAll('.task-widget__button')];
     this.columns = [...this._element.querySelectorAll('.task-widget__column')];
+    this.crossCode = '&#10008;';
   }
 
   init() {
@@ -20,26 +21,22 @@ export default class TaskWidget {
       const memory = JSON.parse(localStorage.getItem('taskWidgetMemory'));
       for (let i = 0; i < this.columns.length; i++) {
         memory[`column${i}`].forEach((el) => {
-          TaskWidget.newTask(el, this.columns[i]);
+          this.newTask(el, this.columns[i]);
         });
       }
-      this.items = [...document.querySelectorAll('.task-widget__item')];
     }
     this.buttons.forEach((el) => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
-        TaskWidget.addNewCard(el);
+        this.addNewCard(el);
       });
-    });
-    this.items.forEach((el) => {
-      this.addEventListenersForCard(el);
     });
     window.addEventListener('unload', () => {
       localStorage.setItem('taskWidgetMemory', `${this.saveTasks()}`);
     });
   }
 
-  static addNewCard(button) {
+  addNewCard(button) {
     const addCardForm = document.createElement('div');
     addCardForm.classList.add('add-card__form');
     addCardForm.innerHTML = `<textarea class="add-card__input" rows="2"></textarea>
@@ -52,20 +49,32 @@ export default class TaskWidget {
       addCardForm.closest('.task-widget__column').removeChild(addCardForm);
     });
     addCardForm.querySelector('.add-card__button').addEventListener('click', () => {
-      TaskWidget.newTask(input.value, column);
+      this.newTask(input.value, column);
       addCardForm.closest('.task-widget__column').removeChild(addCardForm);
     });
   }
 
-  addEventListenersForCard(el) {
+  newTask(text, column) {
+    const card = document.createElement('div');
+    card.classList.add('task-widget__item');
+    card.innerText = `${text}`;
+    column.appendChild(card);
+    this.addhoverListeners(card);
+    this.addDnDListeners(card);
+  }
+
+  addhoverListeners(el) {
     el.addEventListener('mouseenter', () => {
       document.body.style.cursor = 'pointer';
-      TaskWidget.addDeleteButton(el);
+      this.addDeleteButton(el);
     });
     el.addEventListener('mouseleave', () => {
       el.removeChild(el.querySelector('.task-widget__item--close'));
       document.body.style.cursor = 'default';
     });
+  }
+
+  addDnDListeners(el) {
     let draggedEl;
     let draggedElWidth;
     let draggedElHeight;
@@ -73,7 +82,7 @@ export default class TaskWidget {
     let topCoord;
     el.addEventListener('mousedown', (evt) => {
       evt.preventDefault();
-      if (!evt.target.classList.contains('task-widget__item')) {
+      if (evt.target.className === 'task-widget__item--close') {
         return;
       }
       draggedEl = evt.target;
@@ -93,7 +102,7 @@ export default class TaskWidget {
       if (!draggedEl) {
         return;
       }
-      this.items.forEach((item) => {
+      this._element.querySelectorAll('.task-widget__item').forEach((item) => {
         item.style.marginBottom = '2px';
         item.style.marginTop = '2px';
       });
@@ -121,6 +130,7 @@ export default class TaskWidget {
       draggedEl.style.top = 'auto';
       draggedEl.style.left = 'auto';
       document.body.removeChild(draggedEl);
+      document.body.style.cursor = 'pointer';
       if (!closest) {
         const parent = document.elementsFromPoint(evt.clientX, evt.clientY).find((item) => item.className === 'task-widget__column');
         parent.appendChild(draggedEl);
@@ -131,7 +141,7 @@ export default class TaskWidget {
           closest.parentNode.insertBefore(draggedEl, closest);
         }
       }
-      this.items.forEach((item) => {
+      this._element.querySelectorAll('.task-widget__item').forEach((item) => {
         item.style.marginBottom = '2px';
         item.style.marginTop = '2px';
       });
@@ -141,17 +151,9 @@ export default class TaskWidget {
     });
   }
 
-  static newTask(text, column) {
-    const card = document.createElement('div');
-    card.classList.add('task-widget__item');
-    card.innerText = `${text}`;
-    column.appendChild(card);
-    this.addEventListenersForCard(card);
-  }
-
-  static addDeleteButton(el) {
+  addDeleteButton(el) {
     const cross = document.createElement('div');
-    cross.innerHTML = '&#10008;';
+    cross.innerHTML = this.crossCode;
     cross.classList.add('task-widget__item--close');
     el.appendChild(cross);
     cross.addEventListener('click', () => {
