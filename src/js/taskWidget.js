@@ -2,6 +2,8 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-unused-vars */
 /* eslint-disable  no-param-reassign */
+/* eslint-disable  no-plusplus */
+/* eslint-disable  no-lonely-if */
 
 export default class TaskWidget {
   constructor(element) {
@@ -10,7 +12,6 @@ export default class TaskWidget {
     }
     this._element = element;
     this.buttons = [...document.querySelectorAll('.task-widget__button')];
-    this._items;
     this.columns = [...this._element.querySelectorAll('.task-widget__column')];
   }
 
@@ -20,14 +21,14 @@ export default class TaskWidget {
       for (let i = 0; i < this.columns.length; i++) {
         memory[`column${i}`].forEach((el) => {
           TaskWidget.newTask(el, this.columns[i]);
-        })
+        });
       }
       this.items = [...document.querySelectorAll('.task-widget__item')];
     }
     this.buttons.forEach((el) => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
-        this.addNewCard(el);
+        TaskWidget.addNewCard(el);
       });
     });
     this.items.forEach((el) => {
@@ -66,13 +67,13 @@ export default class TaskWidget {
         if (!draggedEl) {
           return;
         }
-        this.items.forEach((el) => {
-          el.style.marginBottom = '2px';
-          el.style.marginTop = '2px';
+        this.items.forEach((item) => {
+          item.style.marginBottom = '2px';
+          item.style.marginTop = '2px';
         });
         draggedEl.style.left = `${evt.pageX - draggedEl.offsetWidth / 2}px`;
         draggedEl.style.top = `${evt.pageY - draggedEl.offsetHeight / 2}px`;
-        closest = document.elementsFromPoint(evt.clientX, evt.clientY).find((el) => el.className === 'task-widget__item');
+        closest = document.elementsFromPoint(evt.clientX, evt.clientY).find((item) => item.className === 'task-widget__item');
         if (!closest) {
           return;
         }
@@ -95,7 +96,7 @@ export default class TaskWidget {
         draggedEl.style.left = 'auto';
         document.body.removeChild(draggedEl);
         if (!closest) {
-          const parent = document.elementsFromPoint(evt.clientX, evt.clientY).find((el) => el.className === 'task-widget__column');
+          const parent = document.elementsFromPoint(evt.clientX, evt.clientY).find((item) => item.className === 'task-widget__column');
           parent.appendChild(draggedEl);
         } else {
           if (evt.pageY > window.scrollY + topCoord + closest.offsetHeight / 2) {
@@ -104,22 +105,21 @@ export default class TaskWidget {
             closest.parentNode.insertBefore(draggedEl, closest);
           }
         }
-        this.items.forEach((el) => {
-          el.style.marginBottom = '2px';
-          el.style.marginTop = '2px';
+        this.items.forEach((item) => {
+          item.style.marginBottom = '2px';
+          item.style.marginTop = '2px';
         });
-        
         draggedEl = null;
         closest = null;
         topCoord = null;
-      })
+      });
     });
     window.addEventListener('unload', () => {
       localStorage.setItem('taskWidgetMemory', `${this.saveTasks()}`);
     });
   }
 
-  addNewCard(button) {
+  static addNewCard(button) {
     const addCardForm = document.createElement('div');
     addCardForm.classList.add('add-card__form');
     addCardForm.innerHTML = `<textarea class="add-card__input" rows="2"></textarea>
@@ -136,7 +136,7 @@ export default class TaskWidget {
       addCardForm.closest('.task-widget__column').removeChild(addCardForm);
     });
   }
-  
+
   static newTask(text, column) {
     const card = document.createElement('div');
     card.classList.add('task-widget__item');
@@ -156,7 +156,7 @@ export default class TaskWidget {
 
   saveTasks() {
     const savedTasks = {};
-    for(let i = 0; i < this.columns.length; i++) {
+    for (let i = 0; i < this.columns.length; i++) {
       const column = [];
       this.columns[i].querySelectorAll('.task-widget__item').forEach((el) => {
         const task = el.innerText;
